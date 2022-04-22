@@ -51,3 +51,8 @@ Resources:
       SecurityGroups:
         - !Ref DefaultSecurityGroup
       IamInstanceProfile: !Ref EC2IAMRole
+
+Outputs:
+  PublicIp:
+    Description: Server Public IP
+    Value: !GetAtt GenericEC2FromGabs.PublicIp
