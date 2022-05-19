@@ -48,7 +48,7 @@ Resources:
           InstanceType,
         ]
       KeyName: !Ref KeyPairName
-      SecurityGroups:
+      SecurityGroupIds:
         - !Ref DefaultSecurityGroup
       IamInstanceProfile: !Ref EC2IAMRole
 
