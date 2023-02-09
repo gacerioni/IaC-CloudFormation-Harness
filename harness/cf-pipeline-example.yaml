@@ -1,0 +1,77 @@
+pipeline:
+  name: CloudFormation Custom Stage
+  identifier: CloudFormation_Custom_Stage
+  projectIdentifier: Qrvey_Chained_CI_Pipelines
+  orgIdentifier: default
+  tags: {}
+  stages:
+    - stage:
+        name: Custom Stage
+        identifier: Custom_Stage
+        description: ""
+        type: Custom
+        spec:
+          execution:
+            steps:
+              - step:
+                  type: CreateStack
+                  name: CloudFormation to Create S3 Bucket
+                  identifier: CloudFormation_to_Create_S3_Bucket
+                  spec:
+                    provisionerIdentifier: <+pipeline.variables.stack_name>
+                    configuration:
+                      stackName: <+pipeline.variables.stack_name>
+                      connectorRef: account.CloudFormation_Machine
+                      region: sa-east-1
+                      templateFile:
+                        type: Remote
+                        spec:
+                          store:
+                            type: Github
+                            spec:
+                              paths:
+                                - S3/generic/S3Bucket.yaml
+                              connectorRef: account.Github
+                              repoName: gacerioni/IaC-CloudFormation-Harness
+                              gitFetchType: Branch
+                              branch: main
+                      roleArn: ""
+                      parameterOverrides:
+                        - name: BucketName
+                          value: <+pipeline.variables.bucket_name>
+                          type: String
+                  timeout: 10m
+              - step:
+                  type: HarnessApproval
+                  name: Approve me
+                  identifier: Approve_me
+                  spec:
+                    approvalMessage: Please review the following information and approve the pipeline progression
+                    includePipelineExecutionHistory: true
+                    approvers:
+                      userGroups:
+                        - account._account_all_users
+                      minimumCount: 1
+                      disallowPipelineExecutor: false
+                    approverInputs: []
+                  timeout: 1d
+              - step:
+                  type: DeleteStack
+                  name: Delete Stack
+                  identifier: Delete_Stack
+                  spec:
+                    configuration:
+                      type: Inherited
+                      spec:
+                        provisionerIdentifier: <+pipeline.variables.stack_name>
+                  timeout: 10m
+        tags: {}
+  variables:
+    - name: bucket_name
+      type: String
+      description: ""
+      value: <+input>
+    - name: stack_name
+      type: String
+      description: ""
+      value: harnesslabsgabsanbus3bucket
